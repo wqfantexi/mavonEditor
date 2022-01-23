@@ -1,41 +1,8 @@
 <template>
     <div id="app">
-        <select @change="opchange" class="page-lang">
-            <option value="zh-CN">简体中文</option>
-            <option value="zh-TW">正體中文</option>
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="ja">日本語 </option>
-            <option value="pt-BR">Português</option>
-            <option value="ru">Русский</option>
-        </select>
-        <section class="page-header">
-            <h1 class="project-name">mavonEditor</h1>
-            <h3 class="project-tagline">{{d_words.sub_title}}</h3>
-            <a href="https://github.com/hinesboy/mavonEditor" class="btn">View on GitHub</a>
-            <a href="https://github.com/hinesboy/mavonEditor/zipball/master" class="btn">Download .zip</a>
-            <a href="https://github.com/hinesboy/mavonEditor/master" class="btn">Download .tar.gz</a>
-        </section>
-        <div v-if="!screen_phone" class="item">
-            <h2 class="item-header">
-                {{d_words.default_setting}}
-            </h2>
-            <div class="item-button">
-              <button @click="clearCache">clear cache</button>
-              <button @click="uploadimg">upload</button>
-              <button @click="imgreplace">imgreplace</button>
-              <input type="text" v-model="imgName" />
-              <button @click="imgdelete">delete</button>
-              <div class="switch-code-style">
-                <span>code style:</span>
-                <select v-model="codeStyle">
-                  <option v-for="(val, key) in styles" :value="key">{{ key }}</option>
-                </select>
-              </div>
-            </div>
+        <div class="item">
             <mavon-editor ref=md :subfield="subfield" :toolbarsFlag="toolbarsFlag" :editable="editable"
-                          :language="d_language" @change="change" @save="saveone" :ishljs="true" class="item-editor" v-model="help1"
+                          :language="d_language" @change="change"  :ishljs="true" class="item-editor" v-model="content"
                           :autofocus="autofocus"
                           :shortCut="true"
                           :externalLink="external_link"
@@ -47,7 +14,9 @@
                           :codeStyle="codeStyle"
                           box-shadow-style="0 2px 12px 0 rgba(0, 0, 0, 0.1)"
                           toolbars-background="#ffffff"
-                          preview-background="#fbfbfb">
+                          preview-background="#fbfbfb"
+                          :toolbars="toolbars"
+                          >
                 <!-- <template slot="left-toolbar-before">
                     左工具栏前
                 </template>
@@ -60,28 +29,13 @@
                 </template>
                 <template slot="right-toolbar-after">
                     右工具栏后
-                </template> -->          
+                </template> -->
             </mavon-editor>
-            <button ref="diy" type="button" @click="$click('selftest')" class="op-icon fa fa-mavon-align-left"
-                aria-hidden="true" title="自定义"></button>
-        </div>
-        <!--自定义-->
-        <div v-if="screen_phone" class="item">
-            <h2 class="item-header">
-                {{d_words.customize_setting}}
-            </h2>
-            <mavon-editor :language="d_language" @save="savetwo" :toolbars="toolbars" class="item-editor"
-                          v-model="help2"></mavon-editor>
-        </div>
-        <div class="item">
-      <span style="display: block;margin: 30px 0 15px 0;color: #1e6bb8" class="">
-        {{d_words.mark}}
-      </span>
-        </div>
-        <div class="item">
-            <h2 class="item-header">
-                {{d_words.detail}}<a href="https://github.com/hinesboy/mavonEditor">GitHub</a>
-            </h2>
+          <!--<button ref="localimg" type="button" @click="onLocalImage" class="op-icon fa fa-mavon-picture-o"
+                  aria-hidden="true" title="本地图片"></button>
+            <button ref="diy" type="button" @click="onScreenShot" class="op-icon fa fa-mavon-scissors"
+                aria-hidden="true" title="屏幕截图"></button>
+                -->
         </div>
     </div>
 </template>
@@ -89,25 +43,51 @@
 <script type="text/ecmascript-6">
     import styles from '../lib/core/hljs/lang.hljs.css.js'
     import {CONFIG} from '../lib/config.js'
+    import { Base64 } from 'js-base64';
     export default {
         name: 'app',
         data () {
             return {
                 d_language: 'zh-CN',
+                content: '',
                 help1: '',
                 help2: '',
                 d_words: {},
                 screen_phone: false,
                 toolbars: {
-                    underline: true, // 下划线
-                    strikethrough: true, // 中划线
-                    alignCenter: true, // 中划线
-                    undo: true,
-                    save: true,
-                    fullscreen: true, // 全屏编辑
-                    navigation: true,
-                    preview: true,
-                    subfield: false
+                  bold: true, // 粗体
+                  italic: true, // 斜体
+                  header: true, // 标题
+                  underline: true, // 下划线
+                  strikethrough: true, // 中划线
+                  mark: true, // 标记
+                  superscript: true, // 上角标
+                  subscript: true, // 下角标
+                  quote: true, // 引用
+                  ol: true, // 有序列表
+                  ul: true, // 无序列表
+                  link: true, // 链接
+                  imagelink: true, // 图片链接
+                  code: true, // code
+                  table: true, // 表格
+                  fullscreen: false, // 全屏编辑
+                  readmodel: false, // 沉浸式阅读
+                  htmlcode: true, // 展示html源码
+                  help: false, // 帮助
+                  /* 1.3.5 */
+                  undo: true, // 上一步
+                  redo: true, // 下一步
+                  trash: true, // 清空
+                  save: false, // 保存（触发events中的save事件）
+                  /* 1.4.2 */
+                  navigation: true, // 导航目录
+                  /* 2.1.8 */
+                  alignleft: true, // 左对齐
+                  aligncenter: true, // 居中
+                  alignright: true, // 右对齐
+                  /* 2.2.1 */
+                  subfield: true, // 单双栏模式
+                  preview: true // 预览
                 },
                 autofocus: true,
                 subfield: true,
@@ -185,16 +165,24 @@
             var md = this.$refs.md;
             var toolbar_left = md.$refs.toolbar_left;
             var diy = this.$refs.diy;
-            toolbar_left.$el.append(diy)
+            // toolbar_left.$el.append(this.$refs.localimg);
+            // toolbar_left.$el.append(diy)
             // toolbar_left.$el.append(diy.$el)
             // console.log(toolbar_left)
+            this.registerGlobalFunc(this);
         },
         methods: {
+            registerGlobalFunc(_this) {
+              window.setMarkdownContent = function (content) {
+                if (content.length === 0) {
+                  _this.value = "";
+                } else {
+                  _this.content = Base64.decode(content);
+                }
+              };
+            },
             clearCache() {
                 this.$refs.md.$emptyHistory()
-            },
-            $click(val) {
-                console.log(val);
             },
             imgreplace($e) {
                 console.log('here');
@@ -223,8 +211,21 @@
                 }) */
             },
             $imgAdd(pos, $file) {
+                // alert(`imgadd ${$file.name} ${pos}`);
                 console.log('imgAdd', pos, $file);
-                this.img_file[pos] = $file;
+                if (window.on_markdown_pasteimage) {
+                  $file.arrayBuffer().then((buffer) => {
+                    // const b64 = Base64.btoa(String.fromCharCode(...new Uint8Array(buffer)));
+                    // console.log($file.miniurl);
+                    window.on_markdown_pasteimage($file.name, $file.miniurl, (result) => {
+                      console.log(`${pos} ---> ${result}`);
+                      // $imgDel(pos)
+                      const filename = $file.name;
+                      // this.$refs.md.$imgDel($file);
+                      this.$refs.md.$insertImage(filename, result);
+                    })
+                  });
+                }
                 // console.log(this.$refs.md.$refs.toolbar_left.$imgDelByFilename(pos));
                 // console.log(this.$refs.md.$refs.toolbar_left.$imgAddByFilename('./test', $file))
                 // console.log(this.$refs.md.$refs.toolbar_left.$imgUpdateByFilename('./test', $file))
@@ -252,7 +253,10 @@
                 alert('save two')
             },
             change (val, render) {
-                console.log(val)
+                if (window.on_markdown_change) {
+                  // alert('change');
+                  window.on_markdown_change(val);
+                }
             },
             opchange (event) {
                 this.d_language = event.target.value;

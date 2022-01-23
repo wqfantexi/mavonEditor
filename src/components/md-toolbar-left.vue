@@ -72,25 +72,12 @@
                     <div class="dropdown-item" style="overflow: hidden">
                         <input type="file" accept="image/gif,image/jpeg,image/jpg,image/png,image/svg" @change="$imgAdd($event)" multiple="multiple"/>{{d_words.tl_upload}}
                     </div>
-
-                    <div
-                        v-for="(item, index) in img_file"
-                        v-if="item && item[1]"
-                        class="dropdown-item dropdown-images"
-                        :title="item[1].name"
-                        :key="index"
-                        @click.stop="$imgFileListClick(index)"
-                    >
-                        <span>{{item[1].name}}</span>
-                        <button slot="right" type="button" @click.stop="$imgDel(index)"
-                                class="op-icon fa fa-mavon-times" aria-hidden="true"
-                                :title="d_words.tl_upload_remove"></button>
-                        <!-- 缩略图展示 -->
-                        <img class = "image-show" :class="{'transition': transition}" :src="item[1].miniurl" alt="none">
-                    </div>
                 </div>
             </transition>
         </div>
+        <button :disabled="!editable" type="button" v-if="toolbars.imagelink" @click="$clicks('screenshot')"
+              class="op-icon fa fa-mavon-scissors" aria-hidden="true"
+              :title="`屏幕截图`"></button>
         <button :disabled="!editable" type="button" v-if="toolbars.code" @click="$clicks('code')"
                 class="op-icon fa fa-mavon-code" aria-hidden="true"
                 :title="`${d_words.tl_code} (ctrl+alt+c)`"></button>
@@ -198,7 +185,7 @@
                 // this.img_file[0][1] = $file;
                 // this.img_file.unshift([(this.num + 1), null]);
                 // this.num = this.num + 1;
-                this.img_file.push([++this.num, $file])
+                // this.img_file.push([++this.num, $file])
                 this.$emit('imgAdd', this.num, $file);
                 this.s_img_dropdown_open = false;
             },

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "webpack-dev-server --progress --config webpack/webpack.dev.js",
     "ci-build": "webpack --progress --config webpack/webpack.build.js",
+    "build-demo": "webpack --progress --config webpack/webpack.dev.js",
     "build": "run-s lint test ci-build",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -36,7 +37,8 @@
   },
   "homepage": "https://github.com/hinesboy/mavonEditor#readme",
   "dependencies": {
-    "xss": "^1.0.6"
+    "xss": "^1.0.6",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "@vue/test-utils": "^1.1.2",
@@ -122,6 +124,8 @@
     "webpack": "^2.4.1",
     "webpack-bundle-analyzer": "^3.3.2",
     "webpack-dev-server": "^2.11.5",
-    "webpack-md5-hash": "^0.0.5"
+    "webpack-md5-hash": "^0.0.5",
+    "js-base64": "^3.7.2",
+    "qwebchannel": "^5.9.0"
   }
 }

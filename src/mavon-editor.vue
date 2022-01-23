@@ -266,7 +266,7 @@ export default {
                 }
                 return default_open_ === 'preview' ? true : false;
             })(), // props true 展示编辑 false展示预览
-            s_fullScreen: false,// 全屏编辑标志
+            s_fullScreen: true,// 全屏编辑标志
             s_help: false,// markdown帮助
             s_html_code: false,// 分栏情况下查看html
             d_help: null,
@@ -414,20 +414,22 @@ export default {
             var clipboardData = $e.clipboardData;
             if (clipboardData) {
                 var items = clipboardData.items;
+              // console.log(items);
                 if (!items) return;
                 var types = clipboardData.types || [];
                 var item = null;
                 for (var i = 0; i < types.length; i++) {
-                    if (types[i] === 'Files') {
+                    if (types[i] === 'Files' || types[i].indexOf('application/x-qt-windows-mime') === 0) {
                         item = items[i];
                         break;
                     }
                 }
+
                 if (item && item.kind === 'file') {
                     // prevent filename being pasted parallel along
                     // with the image pasting process
                     stopEvent($e)
-                    var oFile = item.getAsFile();
+                    const oFile = item.getAsFile();
                     this.$refs.toolbar_left.$imgFilesAdd([oFile]);
                 }
             }
@@ -461,12 +463,14 @@ export default {
                     // 去除特殊字符
                     $file._name = $file.name.replace(/[\[\]\(\)\+\{\}&\|\\\*^%$#@\-]/g, '');
 
+                    /*
                     $vm.insertText($vm.getTextareaDom(),
                         {
                             prefix: '![' + $file._name + '](' + pos + ')',
                             subfix: '',
                             str: ''
                         });
+                    */
                     $vm.$nextTick(function () {
                         $vm.$emit('imgAdd', pos, $file);
                     })
@@ -478,6 +482,15 @@ export default {
                     this.__oFReader.readAsDataURL(oFile);
                 }
             }
+        },
+        $insertImage(name, url) {
+          var $vm = this;
+          $vm.insertText($vm.getTextareaDom(),
+              {
+                prefix: '![' + name + '](' + url + ')',
+                subfix: '',
+                str: ''
+              });
         },
         $imgUpdateByUrl(pos, url) {
             var $vm = this;
@@ -509,7 +522,18 @@ export default {
             }
         },
         toolbar_left_click(_type) {
-            toolbar_left_click(_type, this);
+            if (_type === 'screenshot') {
+              if (window.on_markdown_screenshot) {
+                window.on_markdown_screenshot((result) => {
+                  if (result.length > 1) {
+                    const cells = result.split('|');
+                    this.$insertImage(cells[0], cells[1]);
+                  }
+                });
+              }
+            } else {
+              toolbar_left_click(_type, this);
+            }
         },
         toolbar_left_addlink(_type, text, link) {
             toolbar_left_addlink(_type, text, link, this);
